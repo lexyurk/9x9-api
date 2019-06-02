@@ -4,3 +4,7 @@ class LobbyIsFullError(ValueError):
 
 class UserNotFoundException(BaseException):
     pass
+
+
+class GameNotFoundError(ValueError):
+    pass
