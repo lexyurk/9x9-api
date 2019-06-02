@@ -1,17 +1,14 @@
-from typing import List
+from pydantic import BaseModel, Schema
 
-from pydantic import BaseModel, validator
+
+class Coordinate(BaseModel):
+    x: int = Schema(..., ge=0, le=2, description="Coordinate must be in range 0..2")
+    y: int = Schema(..., ge=0, le=2, description="Coordinate must be in range 0..2")
 
 
 class MoveBase(BaseModel):
-    inner_field: List[int]
-    outer_field: List[int]
-
-    @validator('inner_field', 'outer_field', whole=True)
-    def validate_coordinates(cls, list_value):
-        assert len(list_value) == 2
-        for value in list_value:
-            assert 0 <= value <= 2
+    inner_field: Coordinate
+    outer_field: Coordinate
 
 
 class Move(MoveBase):
@@ -20,3 +17,7 @@ class Move(MoveBase):
 
 class MoveInDB(Move):
     id: int
+
+
+class GameMove(Move):
+    pass
