@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, List
+from typing import Optional, List, Set
 
 from pydantic import BaseModel
 
@@ -20,7 +20,7 @@ class GameBase(BaseModel):
 
 
 class Game(GameBase):
-    active_players: int = 0
+    active_players: Set[int] = {}
     moves: Optional[List[Move]]
 
 
