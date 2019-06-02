@@ -1,6 +1,7 @@
 from app.core.game.exceptions import LobbyIsFullError, UserNotFoundException
 from app.models.field import OuterBoard, InnerBoard, GameFieldState, GameModels, BorderWinner
 from app.models.game import Game, GameStatus
+from app.models.move import GameMove
 from app.models.user import User
 
 
@@ -8,13 +9,10 @@ class GameLobby:
     game: Game
     board: OuterBoard
     game_figures: GameModels
+    last_move: GameMove
 
     def __init__(self):
-        game_data = dict(
-            status=GameStatus.CREATED,
-            active_players=0
-        )
-        self.game = Game(**game_data)
+        self.game = Game()
 
         game_board = self.initialize_game_board()
         self.board = OuterBoard(**game_board)
@@ -27,7 +25,7 @@ class GameLobby:
             game_fields=[[InnerBoard(**inner_game_board) for _ in range(3)] for _ in range(3)]
         )
         return game_board
-    
+
     def is_user_in_game(self, user: User):
         return user in self.game.players
 
@@ -35,26 +33,26 @@ class GameLobby:
         return len(self.game.players) < 2
 
     def is_free_slots(self):
-        return self.game.active_players < 2
+        return len(self.game.active_players) < 2
 
     def join_game(self, user: User):
         if self.is_user_in_game(user):
             if self.is_free_slots():
-                self.game.active_players += 1
+                self.game.active_players.add(user.id)
                 return True
             else:
                 raise LobbyIsFullError("You have already joined this game")
         else:
             if self.is_available_for_new_user():
                 self.game.players.append(user)
-                self.game.active_players += 1
+                self.game.active_players.add(user.id)
                 return True
 
             else:
                 raise LobbyIsFullError("Game lobby is full")
 
-    def left_game(self):
-        self.game.active_players -= 1
+    def left_game(self, user: User):
+        self.game.active_players.remove(user.id)
         self.update_game_status()
 
     def get_figure(self, user: User):
@@ -70,7 +68,7 @@ class GameLobby:
         return game_figure
 
     def update_game_status(self):
-        active_players = self.game.active_players
+        active_players = len(self.game.active_players)
         if active_players != 2:
             self.game.status = GameStatus.WAITING
         elif self.board.border_winner != BorderWinner.empty:
