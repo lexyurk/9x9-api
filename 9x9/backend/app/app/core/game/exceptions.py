@@ -1,0 +1,2 @@
+class LobbyIsFullError(ValueError):
+    pass
