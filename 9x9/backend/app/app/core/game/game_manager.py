@@ -1,5 +1,6 @@
 from typing import Dict
 
+from app.core.game.exceptions import GameNotFoundError
 from app.core.game.game_lobby import GameLobby
 
 
@@ -10,14 +11,19 @@ class GamesManager:
     def __init__(self):
         self.games = {}
 
-    def add_game(self, game_id: int):
+    def create_game(self, game_id: int):
         self.games[game_id] = GameLobby()
+        self.active_games += 1
 
     def get_game(self, game_id: int):
+        if game_id not in self.games.keys():
+            raise GameNotFoundError("Game not found")
         return self.games[game_id]
 
     def remove_game(self, game_id: int):
-        if game_id in self.games:
-            del self.games[game_id]
-        else:
-            raise ValueError("Game not found")
+        if game_id not in self.games:
+            raise GameNotFoundError("Game not found")
+
+        del self.games[game_id]
+        self.active_games -= 1
+
