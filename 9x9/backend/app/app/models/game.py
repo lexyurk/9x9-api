@@ -1,28 +1,28 @@
-from datetime import datetime
-from typing import List, Optional
+from enum import Enum
+from typing import Optional, List
 
 from pydantic import BaseModel
 
-from app.models.moves import Move
+from app.models.move import Move
 from app.models.user import User
 
 
+class GameStatus(str, Enum):
+    PLAYING = 'playing'
+    ENDED = 'ended'
+    CREATED = 'created'
+    WAITING = 'waiting'
+
+
 class GameBase(BaseModel):
-    is_active: bool = True
-    is_end: bool = False
-    active_users: int = 0
-    moves: List[Optional[Move]]
-    players: List[Optional[User]]
+    status: GameStatus = GameStatus.CREATED
+    players: Optional[List[User]]
+
+
+class Game(GameBase):
+    active_players: int = 0
+    moves: Optional[List[Move]]
 
 
 class GameInDB(GameBase):
-    game_id: int
-    last_action: Optional[datetime]
-
-
-class Game(GameInDB):
-    pass
-
-
-class GameCreate(GameBase):
-    pass
+    id: int
