@@ -86,6 +86,12 @@ class GameLobby:
         inner_board = self.board.game_fields[field.outer_field.x][field.outer_field.y]
         game_field = inner_board.game_fields[field.inner_field.x][field.inner_field.y]
         return game_field == GameFieldState.empty
+
+    def set_field(self, move: Move):
+        inner_board = self.board.game_fields[move.outer_field.x][move.outer_field.y]
+        player_figure = self.game_figures.game_model[move.player_id]
+        inner_board.game_fields[move.inner_field.x][move.inner_field.y] = player_figure
+
     def make_move(self, move: Move):
         if not self.is_field_available(move):
             raise FieldNotEmptyError("Field is not empty")
