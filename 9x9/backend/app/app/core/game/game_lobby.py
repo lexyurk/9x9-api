@@ -1,15 +1,16 @@
-from app.core.game.exceptions import LobbyIsFullError, UserNotFoundException
-from app.models.field import OuterBoard, InnerBoard, GameFieldState, GameModels, BorderWinner
+from app.core.game.exceptions import LobbyIsFullError, UserNotFoundException, FieldNotEmptyError, \
+    WrongOuterFieldException, GameIsWaitingException
+from app.models.field import OuterBoard, InnerBoard, GameFieldState, GameModels, BoardWinner, GameModel
 from app.models.game import Game, GameStatus
-from app.models.move import GameMove
+from app.models.move import Move, Coordinate
 from app.models.user import User
 
 
 class GameLobby:
     game: Game
     board: OuterBoard
-    game_figures: GameModels
-    last_move: GameMove
+    game_figures: GameModels = GameModels()
+    last_move: Move = None
 
     def __init__(self):
         self.game = Game()
@@ -52,6 +53,7 @@ class GameLobby:
             if self.is_available_for_new_user():
                 self.game.players.append(user)
                 self.game.active_players.add(user.id)
+                self.game_figures.game_model[user.id] = self.get_game_figure(user)
                 return True
 
             else:
