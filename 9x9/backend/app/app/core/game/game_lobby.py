@@ -35,6 +35,12 @@ class GameLobby:
     def is_free_slots(self):
         return len(self.game.active_players) < 2
 
+    def get_game_figure(self, user: User):
+        for figure, user_id in self.game_figures.game_model.items():
+            if user_id == user.id:
+                return figure
+        return [figure for figure in GameModel if figure not in self.game_figures.game_model.values()][0]
+
     def join_game(self, user: User):
         if self.is_user_in_game(user):
             if self.is_free_slots():
