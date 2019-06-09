@@ -82,6 +82,10 @@ class GameLobby:
         else:
             self.game.status = GameStatus.PLAYING
 
+    def is_field_available(self, field: Move):
+        inner_board = self.board.game_fields[field.outer_field.x][field.outer_field.y]
+        game_field = inner_board.game_fields[field.inner_field.x][field.inner_field.y]
+        return game_field == GameFieldState.empty
     def make_move(self, move: Move):
         if not self.is_field_available(move):
             raise FieldNotEmptyError("Field is not empty")
