@@ -11,16 +11,16 @@ class GamesManager:
     def __init__(self):
         self.games = {}
 
-    def create_game(self, game_id: int):
+    def create_game(self, game_id: int) -> None:
         self.games[game_id] = GameLobby()
         self.active_games += 1
 
-    def get_game(self, game_id: int):
+    def get_game(self, game_id: int) -> GameLobby:
         if game_id not in self.games.keys():
             raise GameNotFoundError("Game not found")
         return self.games[game_id]
 
-    def remove_game(self, game_id: int):
+    def remove_game(self, game_id: int) -> None:
         if game_id not in self.games:
             raise GameNotFoundError("Game not found")
 
