@@ -16,12 +16,12 @@ class GameStatus(str, Enum):
 
 class GameBase(BaseModel):
     status: GameStatus = GameStatus.CREATED
-    players: Optional[List[User]]
+    players: List[Optional[User]] = []
 
 
 class Game(GameBase):
-    active_players: Set[int] = {}
-    moves: Optional[List[Move]]
+    active_players: Set[int] = set()
+    moves: List[Optional[Move]] = []
 
 
 class GameInDB(GameBase):
