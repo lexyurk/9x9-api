@@ -15,7 +15,7 @@ class GameModel(IntEnum):
     O = -1
 
 
-class BorderWinner(IntEnum):
+class BoardWinner(IntEnum):
     empty = 0
     X = 1
     O = -1
@@ -23,7 +23,7 @@ class BorderWinner(IntEnum):
 
 class Board(BaseModel):
     game_fields: List[List[GameFieldState]]
-    border_winner: BorderWinner = BorderWinner.empty
+    board_winner: BoardWinner = BoardWinner.empty
 
     @validator('game_fields', whole=True)
     def validate_game_board_size(cls, game_fields):
@@ -42,4 +42,4 @@ class OuterBoard(Board):
 
 
 class GameModels(BaseModel):
-    game_model: Dict[int, GameModel]
+    game_model: Dict[GameModel, int] = {}
