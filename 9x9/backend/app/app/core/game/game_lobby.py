@@ -77,7 +77,7 @@ class GameLobby:
         active_players = len(self.game.active_players)
         if active_players != 2:
             self.game.status = GameStatus.WAITING
-        elif self.board.border_winner != BorderWinner.empty:
+        elif self.board.board_winner != BoardWinner.empty:
             self.game.status = GameStatus.ENDED
         else:
             self.game.status = GameStatus.PLAYING
