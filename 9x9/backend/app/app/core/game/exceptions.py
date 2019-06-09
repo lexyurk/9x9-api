@@ -1,10 +1,30 @@
-class LobbyIsFullError(ValueError):
+class GameException(Exception):
     pass
 
 
-class UserNotFoundException(BaseException):
+class BoardException(GameException):
     pass
 
 
-class GameNotFoundError(ValueError):
+class LobbyIsFullError(GameException):
+    pass
+
+
+class UserNotFoundException(GameException):
+    pass
+
+
+class GameNotFoundError(GameException):
+    pass
+
+
+class FieldNotEmptyError(BoardException):
+    pass
+
+
+class WrongOuterFieldException(BoardException):
+    pass
+
+
+class GameIsWaitingException(GameException):
     pass
