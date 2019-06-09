@@ -82,6 +82,20 @@ class GameLobby:
         else:
             self.game.status = GameStatus.PLAYING
 
+    def make_move(self, move: Move):
+        if not self.is_field_available(move):
+            raise FieldNotEmptyError("Field is not empty")
+
+        if self.last_move is not None:
+            last_board_coordinates = self.last_move.inner_field
+            last_inner_board = self.board.game_fields[last_board_coordinates.x][last_board_coordinates.y]
+            if self.last_move.inner_field != move.outer_field and last_inner_board.board_winner == BoardWinner.empty:
+                raise WrongOuterFieldException("Selected wrong field")
+            if self.game.status != GameStatus.PLAYING:
+                raise GameIsWaitingException("Please, wait an opponent!")
+
+        self.set_field(move)
+        self.last_move = move
     def check_winner_field(self, field: Coordinate):
         game_board = self.board.game_fields[field.x][field.y]
         board_winner = self.check_board_winner(game_board)
