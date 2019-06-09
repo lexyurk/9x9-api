@@ -82,6 +82,43 @@ class GameLobby:
         else:
             self.game.status = GameStatus.PLAYING
 
+    def check_winner_field(self, field: Coordinate):
+        game_board = self.board.game_fields[field.x][field.y]
+        board_winner = self.check_board_winner(game_board)
+        if board_winner != BoardWinner.empty:
+            game_board.board_winner = board_winner
+            outer_game_board = [[column.board_winner for column in row] for row in self.board.game_fields]
+            outer_game_winner = self.check_board_winner(outer_game_board)
+            if outer_game_winner != BoardWinner.empty:
+                self.board.board_winner = outer_game_winner
+
+    def check_board_winner(self, game_board) -> BoardWinner:
+        # Checks horizontal
+        horizontal_winner = [line[0] for line in game_board if len(set(line)) == 1]
+
+        # Check vertical
+        vertical_winner = []
+        for element in range(3):
+            column = [row[element] for row in game_board]
+            if len(set(column)) == 1:
+                vertical_winner.append(column[0])
+
+        # Check diagonals
+        diagonal1 = [game_board[length][length] for length in range(3)]
+        diagonal2 = [game_board[length - 1 - length][length] for length in range(3 - 1, -1, -1)]
+        diagonal_winner = [diagonal[0] for diagonal in (diagonal1, diagonal2) if len(set(diagonal)) == 1]
+
+        # Check board win
+        field_winner = None
+        for winner in (horizontal_winner, vertical_winner, diagonal_winner):
+            if winner:
+                field_winner = winner[0]
+
+        # Update field and outer field if board win
+        if field_winner:
+            return field_winner
+        return BoardWinner.empty
+
 
 if __name__ == "__main__":
     game_lobby = GameLobby()
