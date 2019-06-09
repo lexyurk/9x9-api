@@ -24,6 +24,7 @@ class BoardWinner(IntEnum):
 class Board(BaseModel):
     game_fields: List[List[GameFieldState]]
     board_winner: BoardWinner = BoardWinner.empty
+    is_available: bool = True
 
     @validator('game_fields', whole=True)
     def validate_game_board_size(cls, game_fields):
