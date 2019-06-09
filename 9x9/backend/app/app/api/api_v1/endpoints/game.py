@@ -52,13 +52,15 @@ html = """
 def test_websockets():
     return HTMLResponse(html)
 
-@router.post("/create", response_model=Game)
+
+@router.post('/create')
 def create_game(
+        *,
         db: Session = Depends(get_db),
-        current_user: DBUser = Depends(get_current_active_user),
+        user: DBUser = Depends(get_current_active_user)
 ):
-    new_game = crud.game.create(db)
-    return new_game.id
+    game = crud.game.create(db_session=db, creator=user)
+    return game.id
 
 
 @router.websocket_route("/game/{game_id}")
