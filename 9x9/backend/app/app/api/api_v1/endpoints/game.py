@@ -63,14 +63,33 @@ def create_game(
     return game.id
 
 
-@router.websocket_route("/game/{game_id}")
-class StartGame(WebSocketEndpoint):
+@router.websocket_route("/ws")
+class Echo(WebSocketEndpoint):
+    encoding = "json"
+    channel = None
 
-    async def on_connect(self, websocket: WebSocket) -> None:
-        pass
+    async def on_connect(self, websocket: WebSocket, **kwargs) -> None:
+        await super().on_connect(websocket)
+        self.channel = Channel(send=websocket.send)
 
-    async def on_receive(self, websocket: WebSocket, data: typing.Any) -> None:
-        pass
+        await websocket.accept()
+
+    async def on_receive(self, websocket: WebSocket, data):
+        room_id = data['room_id']
+        message = data['message']
+        username = data['username']
+
+        if message.strip():
+            group = f"group_{room_id}"
+
+            self.channel_layer.add(group, self.channel)
+
+            payload = {
+                "username": username,
+                "message": message,
+                "room_id": room_id
+            }
+            await self.channel_layer.group_send(group, payload)
 
     async def on_disconnect(self, websocket: WebSocket, close_code: int) -> None:
         pass
