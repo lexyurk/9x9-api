@@ -152,4 +152,12 @@ class GameLobby:
 
 if __name__ == "__main__":
     game_lobby = GameLobby()
-    print(game_lobby.board)
+    player1 = User(id=1)
+    player2 = User(id=2)
+    game_lobby.join_game(user=player1)
+    print()
+    game_lobby.update_game_status()
+    print()
+    move1 = Move(player_id=player1.id, inner_field=Coordinate(x=1, y=0), outer_field=Coordinate(x=0, y=0))
+    game_lobby.make_move(move1)
+    print()
