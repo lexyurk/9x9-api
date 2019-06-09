@@ -106,6 +106,12 @@ class GameLobby:
 
         self.set_field(move)
         self.last_move = move
+
+    def get_game_winner(self):
+        if self.board.board_winner != BoardWinner.empty:
+            return self.board.board_winner
+        return None
+
     def check_winner_field(self, field: Coordinate):
         game_board = self.board.game_fields[field.x][field.y]
         board_winner = self.check_board_winner(game_board)
