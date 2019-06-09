@@ -1,3 +1,5 @@
+from typing import List
+
 from pydantic import BaseModel, Schema
 
 
@@ -21,3 +23,10 @@ class MoveInDB(Move):
 
 class GameMove(Move):
     pass
+
+
+class ResponseGameMove(BaseModel):
+    status: str
+    last_move: Move
+    next_player: int
+    outer_field: List[int] = Schema(..., min_length=2, max_length=2, ge=0, le=2)
