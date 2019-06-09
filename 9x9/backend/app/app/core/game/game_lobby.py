@@ -1,3 +1,5 @@
+from typing import Optional
+
 from app.core.game.exceptions import LobbyIsFullError, UserNotFoundException, FieldNotEmptyError, \
     WrongOuterFieldException, GameIsWaitingException
 from app.models.field import OuterBoard, InnerBoard, GameFieldState, GameModels, BoardWinner, GameModel
@@ -27,22 +29,22 @@ class GameLobby:
         )
         return game_board
 
-    def is_user_in_game(self, user: User):
+    def is_user_in_game(self, user: User) -> bool:
         return user in self.game.players
 
-    def is_available_for_new_user(self):
+    def is_available_for_new_user(self) -> bool:
         return len(self.game.players) < 2
 
-    def is_free_slots(self):
+    def is_free_slots(self) -> bool:
         return len(self.game.active_players) < 2
 
-    def get_game_figure(self, user: User):
+    def get_game_figure(self, user: User) -> GameModel:
         for figure, user_id in self.game_figures.game_model.items():
             if user_id == user.id:
                 return figure
         return [figure for figure in GameModel if figure not in self.game_figures.game_model.values()][0]
 
-    def join_game(self, user: User):
+    def join_game(self, user: User) -> bool:
         if self.is_user_in_game(user):
             if self.is_free_slots():
                 self.game.active_players.add(user.id)
@@ -59,11 +61,11 @@ class GameLobby:
             else:
                 raise LobbyIsFullError("Game lobby is full")
 
-    def left_game(self, user: User):
+    def left_game(self, user: User) -> None:
         self.game.active_players.remove(user.id)
         self.update_game_status()
 
-    def get_figure(self, user: User):
+    def get_figure(self, user: User) -> GameFieldState:
         if user.id in self.game_figures.keys():
             return self.game_figures[user.id]
 
@@ -75,7 +77,7 @@ class GameLobby:
         self.game_figures[user.id] = game_figure
         return game_figure
 
-    def update_game_status(self):
+    def update_game_status(self) -> None:
         active_players = len(self.game.active_players)
         if active_players != 2:
             self.game.status = GameStatus.WAITING
@@ -84,24 +86,27 @@ class GameLobby:
         else:
             self.game.status = GameStatus.PLAYING
 
-    def is_field_available(self, field: Move):
+    def get_game_status(self) -> str:
+        return self.game.status.value
+
+    def is_field_available(self, field: Move) -> bool:
         inner_board = self.board.game_fields[field.outer_field.x][field.outer_field.y]
         game_field = inner_board.game_fields[field.inner_field.x][field.inner_field.y]
         return game_field == GameFieldState.empty
 
-    def set_field(self, move: Move):
+    def set_field(self, move: Move) -> None:
         inner_board = self.board.game_fields[move.outer_field.x][move.outer_field.y]
         player_figure = self.game_figures.game_model[move.player_id]
         inner_board.game_fields[move.inner_field.x][move.inner_field.y] = player_figure
 
-    def make_move(self, move: Move):
+    def make_move(self, move: Move) -> None:
         if not self.is_field_available(move):
             raise FieldNotEmptyError("Field is not empty")
 
         if self.last_move is not None:
             last_board_coordinates = self.last_move.inner_field
             last_inner_board = self.board.game_fields[last_board_coordinates.x][last_board_coordinates.y]
-            if self.last_move.inner_field != move.outer_field and last_inner_board.board_winner == BoardWinner.empty:
+            if self.last_move.inner_field != move.outer_field and last_inner_board.is_available:
                 raise WrongOuterFieldException("Selected wrong field")
             if self.game.status != GameStatus.PLAYING:
                 raise GameIsWaitingException("Please, wait an opponent!")
@@ -109,12 +114,12 @@ class GameLobby:
         self.set_field(move)
         self.last_move = move
 
-    def get_game_winner(self):
+    def get_game_winner(self) -> Optional[BoardWinner]:
         if self.board.board_winner != BoardWinner.empty:
             return self.board.board_winner
         return None
 
-    def check_winner_field(self, field: Coordinate):
+    def check_winner_field(self, field: Coordinate) -> None:
         game_board = self.board.game_fields[field.x][field.y]
         board_winner = self.check_board_winner(game_board)
         if board_winner != BoardWinner.empty:
@@ -150,6 +155,16 @@ class GameLobby:
         if field_winner:
             return field_winner
         return BoardWinner.empty
+
+    def get_next_player(self) -> int:
+        return self.game.players.pop(self.last_move.player_id)[0]
+
+    def get_next_outer_field(self) -> Coordinate:
+        game_field = self.last_move.inner_field
+        any_field = Coordinate(x=-1, y=-1)
+        board_winner = self.board.game_fields[game_field.x][game_field.y].board_winner
+        is_board_available = self.board.game_fields[game_field.x][game_field.y].is_available
+        return game_field if board_winner == BoardWinner.empty and is_board_available else any_field
 
 
 if __name__ == "__main__":
