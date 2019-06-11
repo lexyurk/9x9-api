@@ -59,6 +59,9 @@ services:
         - traefik.tags=${TRAEFIK_TAG}
   frontend:
     deploy:
+      resources:
+        limits:
+          memory: 1000M
       labels:
         - traefik.frontend.rule=PathPrefix:/
         - traefik.enable=true
