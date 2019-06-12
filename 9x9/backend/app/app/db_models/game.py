@@ -13,6 +13,5 @@ user_game_table = Table('user_game_association', Base.metadata,
 class Game(Base):
     id = Column(Integer, primary_key=True, index=True)
     status = Column(Enum(GameStatus, index=True))
-    # moves = relationship("Move", back_populates="game_id")
-    players = relationship("User", secondary=user_game_table, back_populates="games")
+    players = relationship("User", secondary=user_game_table, back_populates="game")
     last_update = Column(DateTime, onupdate=func.now())

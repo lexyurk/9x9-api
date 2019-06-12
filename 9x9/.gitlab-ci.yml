@@ -41,14 +41,14 @@ deploy-stag:
   stage: deploy
   script: 
     - >
-      DOMAIN=stag.9x9-game
-      TRAEFIK_TAG=stag.9x9-game
+      DOMAIN=stag.9x9.com
+      TRAEFIK_TAG=stag.9x9.com
       STACK_NAME=stag-9x9-game
       TAG=stag
       sh ./scripts/deploy.sh
   environment:
     name: staging
-    url: https://stag.9x9-game
+    url: https://stag.9x9.com
   only:
     - master
   tags:
@@ -59,14 +59,14 @@ deploy-prod:
   stage: deploy
   script:
     - >
-      DOMAIN=9x9-game
-      TRAEFIK_TAG=9x9-game
+      DOMAIN=9x9.com
+      TRAEFIK_TAG=9x9.com
       STACK_NAME=9x9-game
       TAG=prod
       sh ./scripts/deploy.sh
   environment:
     name: production
-    url: https://9x9-game
+    url: https://9x9.com
   only:
     - production
   tags:
