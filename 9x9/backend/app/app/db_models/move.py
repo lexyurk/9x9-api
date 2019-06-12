@@ -1,5 +1,4 @@
 from sqlalchemy import Column, Integer, ForeignKey, ARRAY
-from sqlalchemy.orm import relationship
 
 from app.db.base_class import Base
 
