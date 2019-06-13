@@ -6,7 +6,7 @@ from app.models.game import GameStatus
 
 
 def create(db_session: Session, *, creator: DBUser) -> Game:
-    game = Game(players=creator, status=GameStatus.CREATED)
+    game = Game(players=[creator], status=GameStatus.CREATED)
     game_manager.create_game(game.id)
     db_session.add(game)
     db_session.commit()
