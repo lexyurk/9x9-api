@@ -121,6 +121,7 @@ class GameEndpoint(WebSocketEndpoint):
             user: DBUser = Depends(get_current_active_user),
             **kwargs
     ) -> None:
+        print("Connected")
         await super().on_connect(websocket)
 
         self.game.join_game(user)
