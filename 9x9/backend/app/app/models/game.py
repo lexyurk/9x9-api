@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Optional, List, Set
+from typing import Optional, List, Set, Dict
 
 from pydantic import BaseModel
 
@@ -16,7 +16,7 @@ class GameStatus(str, Enum):
 
 class GameBase(BaseModel):
     status: GameStatus = GameStatus.CREATED
-    players: List[Optional[User]] = []
+    players: Dict[int, User] = dict()
 
 
 class Game(GameBase):
