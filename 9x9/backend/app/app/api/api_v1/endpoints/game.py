@@ -138,22 +138,26 @@ class GameEndpoint(WebSocketEndpoint):
             self,
             websocket: WebSocket,
             user: DBUser = Depends(get_current_active_user),
-            move: Move = Depends(),
+            move: MoveBase = Depends(),
             **kwargs
     ):
+        user_move = Move(player_id=user.id, inner_field=move.inner_field, outer_field=move.outer_field)
+        if not self.game.get_next_player() == user.id:
+            json_response = {"status": "error", "detail": "Wait for opponent move."}
+            await websocket.send_json(json_response)
         try:
-            self.game.make_move(move)
+            self.game.make_move(user_move)
         except (FieldNotEmptyError, WrongOuterFieldException) as e:
-            json_response = {"status": "error", "detail": "Wrong field selected"}
+            json_response = {"status": "error", "detail": "Wrong field selected."}
             await websocket.send_json(json_response)
         finally:
-            response_game_move = ResponseGameMove(
+            game_update = ResponseGameMove(
                 status=self.game.get_game_status(),
                 last_move=move,
                 next_player=self.game.get_next_player(),
                 outer_field=move.game.get_next_outer_field()
             )
-            await self.channel_layer.group_send(self.group_id, response_game_move)
+            await self.channel_layer.group_send(self.group_id, game_update)
 
     async def on_disconnect(
             self,
