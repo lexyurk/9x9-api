@@ -9,8 +9,5 @@ def get_game(
         game_id: int,
         game_manager=game_manager
 ) -> GameLobby:
-    try:
-        game = game_manager.get_game(game_id=game_id)
-    except GameNotFoundError:
-        raise HTTPException(status_code=404, detail=GameNotFoundError.args[0])
+    game = game_manager.get_game(game_id=game_id)
     return game
