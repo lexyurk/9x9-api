@@ -28,3 +28,7 @@ class WrongOuterFieldException(BoardException):
 
 class GameIsWaitingException(GameException):
     pass
+
+
+class PlayerNotFound(GameException):
+    pass
