@@ -1,7 +1,7 @@
 from typing import Optional
 
 from app.core.game.exceptions import LobbyIsFullError, UserNotFoundException, FieldNotEmptyError, \
-    WrongOuterFieldException, GameIsWaitingException
+    WrongOuterFieldException, GameIsWaitingException, PlayerNotFound
 from app.models.field import OuterBoard, InnerBoard, GameFieldState, GameModels, BoardWinner, GameModel
 from app.models.game import Game, GameStatus
 from app.models.move import Move, Coordinate
@@ -52,7 +52,7 @@ class GameLobby:
                 raise LobbyIsFullError("You have already joined this game")
         else:
             if self.is_available_for_new_user():
-                self.game.players.append(user)
+                self.game.players[user.id] = user
                 self.game.active_players.add(user.id)
                 self.game_figures.game_model[user.id] = self.get_game_figure(user)
                 return True
