@@ -1,6 +1,6 @@
 from typing import List
 
-from pydantic import BaseModel, Schema
+from pydantic import BaseModel, Schema, validator
 
 
 class Coordinate(BaseModel):
@@ -25,8 +25,24 @@ class GameMove(Move):
     pass
 
 
+class MoveRequestSchema(BaseModel):
+    inner_field: List[int]
+    outer_field: List[int]
+
+    @validator('inner_field', 'outer_field', whole=True)
+    def validate_fields(cls, field):
+        assert len(field) == 2
+        for field_value in field:
+            assert 0 <= field_value <= 2
+        return field
+
+
+class MoveResponseSchema(MoveRequestSchema):
+    player_id: int
+
+
 class ResponseGameMove(BaseModel):
     status: str
-    last_move: Move
+    last_move: MoveResponseSchema
     next_player: int
     outer_field: List[int] = Schema(..., min_length=2, max_length=2, ge=0, le=2)
