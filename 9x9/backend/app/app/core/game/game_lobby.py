@@ -30,7 +30,7 @@ class GameLobby:
         return game_board
 
     def is_user_in_game(self, user: User) -> bool:
-        return user in self.game.players
+        return user.id in self.game.players
 
     def is_available_for_new_user(self) -> bool:
         return len(self.game.players) < 2
@@ -39,9 +39,8 @@ class GameLobby:
         return len(self.game.active_players) < 2
 
     def get_game_figure(self, user: User) -> GameModel:
-        for figure, user_id in self.game_figures.game_model.items():
-            if user_id == user.id:
-                return figure
+        if user.id in self.game_figures.game_model:
+            return self.game_figures.game_model.get(user.id)
         return [figure for figure in GameModel if figure not in self.game_figures.game_model.values()][0]
 
     def join_game(self, user: User) -> bool:
