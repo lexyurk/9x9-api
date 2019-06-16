@@ -25,6 +25,18 @@ html = """
     </head>
     <body>
         <h1>WebSocket Chat</h1>
+        <form action="" onsubmit="authorizeUser(event)">
+            <input type="text" id="username" placeholder="Username">
+            <input type="text" id="password" placeholder="Password">
+            <button>Authorize</button>
+        </form>
+        <form action="" onsubmit="testAuthorization(event)">
+            <input type="submit" value="Test authorization">
+        </form>
+        <form action="" onsubmit="connectToGame(event)">
+            <input type="text" id="gameId" placeholder="Connect to game">
+            <button>Connect</button>
+        </form>
         <form action="" onsubmit="sendMessage(event)">
             <input type="text" id="messageText" autocomplete="off"/>
             <button>Send</button>
@@ -32,18 +44,51 @@ html = """
         <ul id='messages'>
         </ul>
         <script>
-            var ws = new WebSocket("ws://localhost/api/v1/game/ws");
-            ws.onmessage = function(event) {
-                var messages = document.getElementById('messages')
-                var message = document.createElement('li')
-                var content = document.createTextNode(event.data)
-                message.appendChild(content)
-                messages.appendChild(message)
-            };
+            var ws = null;
+            var authCookies = null;
+            function authorizeUser(event) {
+                event.preventDefault();
+                var userName = document.getElementById("username").value;
+                var password = document.getElementById("password").value;
+                var http = new XMLHttpRequest();
+                http.open("POST", "http://localhost/api/v1/login/access-token");
+                http.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                http.onload  = function() {
+                    var jsonResponse = http.response;
+                    var json = JSON.parse(jsonResponse);
+                    var d = new Date();
+                    d.setTime(d.getTime() + (24*60*60*1000));
+                    var expires = "expires="+ d.toUTCString();
+                    authCookies = "Authorization=Bearer " + json["access_token"] + ";" + expires + ";path=/";
+                    console.log(authCookies);
+                };
+                http.send("grant_type=password&username="+userName+"&password="+password);
+                }
+            function connectToGame(event) {
+                event.preventDefault();
+                var game_id = document.getElementById("gameId");
+                document.cookie = authCookies;
+                ws = new WebSocket("ws://localhost/api/v1/games/" + game_id.value + "/ws");
+                ws.onmessage = function(event) {
+                    var messages = document.getElementById('messages');
+                    var message = document.createElement('li');
+                    var content = document.createTextNode(event.data);
+                    message.appendChild(content);
+                    messages.appendChild(message)
+                };
+            }
+            function testAuthorization(event) {
+                event.preventDefault();
+                var http = new XMLHttpRequest();
+                document.cookie = authCookies;
+                http.open("POST", "http://localhost/api/v1/login/test-token");
+                http.withCredentials = true;
+                http.send(null);
+            }
             function sendMessage(event) {
-                var input = document.getElementById("messageText")
-                ws.send(input.value)
-                input.value = ''
+                var input = document.getElementById("messageText");
+                ws.send(input.value);
+                input.value = '';
                 event.preventDefault()
             }
         </script>
