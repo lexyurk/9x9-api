@@ -99,22 +99,15 @@ class Echo(WebSocketEndpoint):
         pass
 
 
-@router.websocket_route("/{game_id}/ws")
+@router.websocket_route("/{game_id:int}/ws")
 class GameEndpoint(WebSocketEndpoint):
     encoding = "json"
     channel = None
     channel_layer = None
     game_id: int
-    game: GameLobby
+    game: GameLobby = None
     group_id: int
     user: DBUser
-
-    def __init__(self, scope: Scope, game_id: int):
-        self.game_id = game_id
-        self.group_id = game_id
-        self.game = get_game(game_id)
-        self.channel_layer = channel_layer
-        super().__init__(scope=scope)
 
     async def on_connect(
             self,
@@ -124,6 +117,15 @@ class GameEndpoint(WebSocketEndpoint):
     ) -> None:
         await super().on_connect(websocket)
 
+        game_id = websocket.path_params['game_id']
+        self.game_id = game_id
+        self.group_id = game_id
+        self.channel_layer = channel_layer
+        try:
+            self.game = get_game(game_id)
+        except GameNotFoundError:
+            await websocket.close(code=1008)
+            return
         self.game.join_game(user)
         self.game.update_game_status()
         self.channel = Channel(name=self.game_id, send=websocket.send_json)
