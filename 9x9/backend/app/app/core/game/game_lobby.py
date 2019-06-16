@@ -95,8 +95,11 @@ class GameLobby:
 
     def set_field(self, move: Move) -> None:
         inner_board = self.board.game_fields[move.outer_field.x][move.outer_field.y]
-        player_figure = self.game_figures.game_model[move.player_id]
-        inner_board.game_fields[move.inner_field.x][move.inner_field.y] = player_figure
+        player_figure = self.game_figures.game_model.get(move.player_id)
+        if player_figure is not None:
+            inner_board.game_fields[move.inner_field.x][move.inner_field.y] = player_figure
+        else:
+            raise PlayerNotFound("Player is not in this game!")
 
     def make_move(self, move: Move) -> None:
         if not self.is_field_available(move):
