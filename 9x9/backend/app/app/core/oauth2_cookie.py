@@ -148,7 +148,7 @@ class OAuth2PasswordBearerCookies(OAuth2Cookies):
         flows = OAuthFlowsModel(password={"tokenUrl": tokenUrl, "scopes": scopes})
         super().__init__(flows=flows, scheme_name=scheme_name, auto_error=auto_error)
 
-    def __call__(self, request: Request) -> Optional[str]:
+    async def __call__(self, request: Request) -> Optional[str]:
         authorization: str = request.headers.get("Authorization")
         if not authorization:
             cookies = request.headers.get("cookie").split(';')
