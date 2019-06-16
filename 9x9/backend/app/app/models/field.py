@@ -43,4 +43,4 @@ class OuterBoard(Board):
 
 
 class GameModels(BaseModel):
-    game_model: Dict[GameModel, int] = {}
+    game_model: Dict[int, GameModel] = dict()
