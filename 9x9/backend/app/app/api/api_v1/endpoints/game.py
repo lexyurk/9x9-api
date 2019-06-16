@@ -13,7 +13,7 @@ from app.core.game.exceptions import FieldNotEmptyError, WrongOuterFieldExceptio
 from app.core.game.game_lobby import GameLobby
 from app.db.session import Session
 from app.db_models.user import User as DBUser
-from app.models.move import Move, ResponseGameMove
+from app.models.move import ResponseGameMove, MoveRequestSchema
 
 router = APIRouter()
 
@@ -107,8 +107,9 @@ class GameEndpoint(WebSocketEndpoint):
     game_id: int
     game: GameLobby
     group_id: int
+    user: DBUser
 
-    def __init__(self, game_id: int, scope: Scope):
+    def __init__(self, scope: Scope, game_id: int):
         self.game_id = game_id
         self.group_id = game_id
         self.game = get_game(game_id)
@@ -121,7 +122,6 @@ class GameEndpoint(WebSocketEndpoint):
             user: DBUser = Depends(get_current_active_user),
             **kwargs
     ) -> None:
-        print("Connected")
         await super().on_connect(websocket)
 
         self.game.join_game(user)
@@ -138,10 +138,11 @@ class GameEndpoint(WebSocketEndpoint):
             self,
             websocket: WebSocket,
             user: DBUser = Depends(get_current_active_user),
-            move: MoveBase = Depends(),
+            request_move: MoveRequestSchema = Depends(),
             **kwargs
     ):
-        user_move = Move(player_id=user.id, inner_field=move.inner_field, outer_field=move.outer_field)
+
+        user_move = crud.game.convert_to_move_model(request_move, user.id)
         if not self.game.get_next_player() == user.id:
             json_response = {"status": "error", "detail": "Wait for opponent move."}
             await websocket.send_json(json_response)
@@ -153,9 +154,9 @@ class GameEndpoint(WebSocketEndpoint):
         finally:
             game_update = ResponseGameMove(
                 status=self.game.get_game_status(),
-                last_move=move,
+                last_move=crud.game.convert_to_response_model(user_move),
                 next_player=self.game.get_next_player(),
-                outer_field=move.game.get_next_outer_field()
+                outer_field=self.game.get_next_outer_field()
             )
             await self.channel_layer.group_send(self.group_id, game_update)
 
@@ -164,6 +165,6 @@ class GameEndpoint(WebSocketEndpoint):
             websocket: WebSocket,
             close_code: int,
             user: DBUser = Depends(get_current_active_user)
-    ) -> None:
+    ):
         self.game.left_game(user)
         self.game.update_game_status()
