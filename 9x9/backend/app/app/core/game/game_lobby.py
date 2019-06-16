@@ -156,7 +156,14 @@ class GameLobby:
         return BoardWinner.empty
 
     def get_next_player(self) -> int:
-        return self.game.players.pop(self.last_move.player_id)[0]
+        """
+        Gets next player id to move.
+
+        Next player is those one, who didn't make last move
+        :return: id of next player to move
+        """
+        game_players = set(self.game.players.keys())
+        return game_players.difference({self.last_move.player_id}).pop()
 
     def get_next_outer_field(self) -> Coordinate:
         game_field = self.last_move.inner_field
