@@ -2,14 +2,13 @@ from fastapi import Depends, APIRouter
 from nejma import Channel, channel_layer
 from starlette.endpoints import WebSocketEndpoint
 from starlette.responses import HTMLResponse
-from starlette.types import Scope
 from starlette.websockets import WebSocket
 
 from app import crud
 from app.api.utils.db import get_db
 from app.api.utils.game import get_game
 from app.api.utils.security import get_current_active_user
-from app.core.game.exceptions import FieldNotEmptyError, WrongOuterFieldException
+from app.core.game.exceptions import FieldNotEmptyError, WrongOuterFieldException, GameNotFoundError
 from app.core.game.game_lobby import GameLobby
 from app.db.session import Session
 from app.db_models.user import User as DBUser
@@ -188,24 +187,28 @@ class GameEndpoint(WebSocketEndpoint):
             request_move: MoveRequestSchema = Depends(),
             **kwargs
     ):
-
+        if not self.game:
+            json_response = {"status": "Game join error"}
+            await websocket.send_json(json_response)
+            return
         user_move = crud.game.convert_to_move_model(request_move, user.id)
         if not self.game.get_next_player() == user.id:
             json_response = {"status": "error", "detail": "Wait for opponent move."}
             await websocket.send_json(json_response)
+            return
         try:
             self.game.make_move(user_move)
         except (FieldNotEmptyError, WrongOuterFieldException) as e:
             json_response = {"status": "error", "detail": "Wrong field selected."}
             await websocket.send_json(json_response)
-        finally:
-            game_update = ResponseGameMove(
-                status=self.game.get_game_status(),
-                last_move=crud.game.convert_to_response_model(user_move),
-                next_player=self.game.get_next_player(),
-                outer_field=self.game.get_next_outer_field()
-            )
-            await self.channel_layer.group_send(self.group_id, game_update)
+            return
+        game_update = ResponseGameMove(
+            status=self.game.get_game_status(),
+            last_move=crud.game.convert_to_response_model(user_move),
+            next_player=self.game.get_next_player(),
+            outer_field=self.game.get_next_outer_field()
+        )
+        await self.channel_layer.group_send(self.group_id, game_update)
 
     async def on_disconnect(
             self,
@@ -213,5 +216,7 @@ class GameEndpoint(WebSocketEndpoint):
             close_code: int,
             user: DBUser = Depends(get_current_active_user)
     ):
+        if not self.game:
+            return
         self.game.left_game(user)
         self.game.update_game_status()
